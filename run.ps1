@@ -1,53 +1,138 @@
-#$host.UI.RawUI.WindowSize = New-Object System.Management.Automation.Host.Size(120, 10)
-$ytdlp = '.\yt-dlp.exe'
-# Arguments for executable or custom ones
-$vidargs = '--config-location ".\config\yt-dlp_v.conf" -o "%(title)s.%(ext)s" '
-$audargs = '--config-location ".\config\audio\default.conf" -o "%(title)s.%(ext)s" '
-$keyargs = '"D1" -or "D2" -or "D3" -or "D4" -or "Oem4" -or "q"'
-$date = Get-Date -Format "yyyy-MM-dd_HH-mm"
-# Color Varibles
-$cyan = 'cyan'
-$white = 'white'
-$red = 'red'
-$green = 'green'
-$red = 'red'
-$gray = 'gray'
+Import-Module .\modules\vars.ps1
+Import-Module .\modules\create.ps1
+Import-Module .\modules\funcs.ps1
+Import-Module .\modules\menus.ps1
+Import-Module .\modules\other.ps1
 
 # Download Video Script
 function DownloadVideo {
   Write-Host 'Use "CTRL+C" to cancel' -ForegroundColor $white
   $host.UI.RawUI.WindowTitle = "Enter a URL"
   $URL = Read-Host -Prompt 'Enter a URL'
-  $host.UI.RawUI.WindowTitle = "Downloading..."
-  Start-Process -Wait -FilePath "$ytdlp" -ArgumentList "$vidargs-w $URL" -RedirectStandardOutput ".\logs\download_$($date).log" -WindowStyle Minimized
-  Clear-Host
-  $host.UI.RawUI.WindowTitle = "Finished Downloading"
-  Write-Host 'Finished downloading' -ForegroundColor $green -BackgroundColor White
-  $ans = Read-Host -Prompt 'See the downloaded file? [Y]es or [N]o'
-  if ($ans -eq "y" -or "Y") {
-    Invoke-Item '.\downloads\video\'
-  } elseif ($ans -eq "n" -or "N") {
-    pause
+  if ($URL.Length -eq 0) {
+    Clear-Host
+    Write-Host 'Your input is blank' -ForegroundColor $red
+    Pause
+    RunMenu
+  } else {
+    $host.UI.RawUI.WindowTitle = "Downloading..."
+    Start-Process -Wait -FilePath "$ytdlp" -ArgumentList "$vidargs -w $URL" -RedirectStandardOutput ".\logs\download\video\$($date).log" -WindowStyle Minimized
+    #Pause
   }
-  RunMenu
+  do {
+    ShowEndMenu
+    $key = [System.Console]::ReadKey($true).Key
+  
+    switch ($key) {
+      "Y" { Invoke-Item '.\downloads\video\';Clear-Host;RunMenu }
+      "N" { Clear-Host;RunMenu }
+      default { Write-Output "Invaild Option" }
+    }
+  
+    if ($key -ne $endkeyargs) {
+      Clear-Host
+      Write-Host "Invaild Key!"
+      Write-Host "Press any key to return..."
+      [System.Console]::ReadKey($true) | Out-Null
+    }
+  } while ($key -ne $endkeyargs)
 }
 
 # Download Audio Script
 function DownloadAudio {
   Write-Host 'Use "CTRL+C" to cancel' -ForegroundColor $white
   $host.UI.RawUI.WindowTitle = "Enter a URL"
-  $URL = Read-Host -Prompt 'Enter a URL'
-  $host.UI.RawUI.WindowTitle = "Downloading..."
-  Start-Process -Wait -FilePath "$ytdlp" -ArgumentList "$audargs-w $URL" -RedirectStandardOutput ".\logs\download_$($date).log" -WindowStyle Minimized
-  Clear-Host
-  $host.UI.RawUI.WindowTitle = "Finished Downloading"
-  Write-Host 'Finished downloading' -ForegroundColor $green -BackgroundColor White
-  $ans = Read-Host -Prompt 'See the downloaded file? [Y]es or [N]o'
-  if ($ans -eq "y" -or "Y") {
-    Invoke-Item '.\downloads\audio\'
-  } elseif ($ans -eq "n" -or "N") {
-    pause
+  $URL = Read-Host -Prompt 'Enter a URL' 
+  if ($URL.Length -eq 0) {
+    Clear-Host
+    Write-Host 'Your input is blank' -ForegroundColor $red
+    Pause
+    RunMenu
+  } else {
+    $host.UI.RawUI.WindowTitle = "Downloading..."
+    Start-Process -Wait -FilePath "$ytdlp" -ArgumentList "$audargs -w $URL" -RedirectStandardOutput ".\logs\download\audio\$($date).log" -WindowStyle Minimized
+    #Pause
   }
+  do {
+    ShowEndMenu
+    $key = [System.Console]::ReadKey($true).Key
+  
+    switch ($key) {
+      "Y" { Invoke-Item '.\downloads\audio\';Clear-Host;RunMenu }
+      "N" { Clear-Host;RunMenu }
+      default { Write-Output "Invaild Option" }
+    }
+  
+    if ($key -ne $endkeyargs) {
+      Clear-Host
+      Write-Host "Invaild Key!"
+      Write-Host "Press any key to return..."
+      [System.Console]::ReadKey($true) | Out-Null
+    }
+  } while ($key -ne $endkeyargs)
+}
+
+function UpdateYtdlp {
+  Write-Host 'Use "CTRL+C" to cancel' -ForegroundColor $white
+  $host.UI.RawUI.WindowTitle = "Updating..."
+  Start-Process -Wait -FilePath "$ytdlp" -ArgumentList "--update" -RedirectStandardOutput ".\logs\update\$($date).log" -WindowStyle Minimized
+  Pause
+  Clear-Host
+  $host.UI.RawUI.WindowTitle = "Updated"
+  Write-Host "YT-DLP is now updated" -ForegroundColor $green
+  Pause
+  RunMenu
+}
+
+function ClearCacheAndLogs {
+  Write-Host 'Use "CTRL+C" to cancel' -ForegroundColor $white
+  $host.UI.RawUI.WindowTitle = "Clearing Cache..."
+  Get-ChildItem '.\.cache' -Include * -Recurse | Remove-Item
+  Get-ChildItem '.\logs' -Include * -Recurse | Remove-Item
+  Pause
+  Clear-Host
+  $host.UI.RawUI.WindowTitle = "Cleared Cache"
+  Write-Host "Finished clearing cache and log files/folders" -ForegroundColor $green
+  Pause
+  RunMenu
+}
+
+function InstallYTDLP {
+  Write-Host 'Use "CTRL+C" to cancel' -ForegroundColor $white
+  $host.UI.RawUI.WindowTitle = "Installing yt-dlp..."
+  Write-Host "Started installing yt-dlp"
+  New-Item -Path '.\.cache\install' -ItemType "directory" 
+  if ($is64Bit -eq 'True') {
+    Invoke-WebRequest $ytdlpurl64 -OutFile '.\.cache\install\yt-dlp_x64.exe' | Write-Host "Installing yt-dlp..."
+    Move-Item -Path '.\.cache\install\yt-dlp_x64.exe' -Destination '.\yt-dlp.exe'  | Write-Host "Moving yt-dlp..."
+  } elseif ($is64Bit -eq 'False') {
+    Invoke-WebRequest $ytdlpurl86 -OutFile '.\.cache\install\yt-dlp_x86.exe' | Write-Host "Installing yt-dlp (x86)..."
+    Move-Item -Path '.\.cache\install\yt-dlp_x86.exe' -Destination '.\yt-dlp.exe'  | Write-Host "Moving yt-dlp..."
+  } else {
+    Invoke-WebRequest $ytdlpurlzip -OutFile '.\.cache\install\yt-dlp_win.zip' | Write-Host "Installing yt-dlp (Zip Archive)..."
+    Expand-Archive -Path '.\.cache\install\yt-dlp_win.zip' -DestinationPath '.\.cache\install\ytdlp-zip'  | Write-Host "Unzipping yt-dlp (Zip Archive)..."
+    Move-Item -Path '.\.cache\install\ytdlp-zip\yt-dlp.exe' -Destination '.\yt-dlp.exe' | Write-Host "Moving yt-dlp..."
+  }
+  Write-Host "Finished installing yt-dlp"
+  Pause
+  Write-Host "Started installing FFmpeg"
+  if ($is64Bit -eq 'True') {
+    Invoke-WebRequest $ffmpegurl64 -OutFile '.\.cache\install\ffmpeg_x64.zip' | Write-Host "Installing FFmpeg..."
+    Expand-Archive -Path '.\.cache\install\ffmpeg_x64.zip' -DestinationPath '.\.cache\install'  | Write-Host "Unzipping FFmpeg..."
+    Move-Item -Path '.\.cache\install\ffmpeg-master-latest-win64-gpl-shared\bin\ffmpeg.exe' -Destination '.\depenencies\ffmpeg.exe'  | Write-Host "Moving FFmpeg..."
+    Move-Item -Path '.\.cache\install\ffmpeg-master-latest-win64-gpl-shared\bin\ffplay.exe' -Destination '.\depenencies\ffplay.exe'  | Write-Host "Moving FFmpeg..."
+    Move-Item -Path '.\.cache\install\ffmpeg-master-latest-win64-gpl-shared\bin\ffprobe.exe' -Destination '.\depenencies\ffprobe.exe'  | Write-Host "Moving FFmpeg..."
+  }
+  Write-Host "Finished installing FFmpeg"
+  Pause
+  Write-Host "Clearing cache data..."
+  Get-ChildItem -Path '.\.cache\install' -Include * -Recurse -Force | Remove-Item -Recurse -Force
+  Remove-Item -Path '.\.cache\install' -Force
+  Write-Host "Finished clearing cache data"
+  Pause
+  Clear-Host
+  Write-Host "Finished installing yt-dlp & FFmpeg" -ForegroundColor $green
+  Pause
   RunMenu
 }
 
@@ -55,18 +140,26 @@ function DownloadAudio {
 function HelpDialog {
   Write-Host 'Use "CTRL+C" to cancel' -ForegroundColor $white
   $host.UI.RawUI.WindowTitle = "Writing help file..."
+  Write-Host "Writing help file.`nPlease wait..." -ForegroundColor $yellow
   Start-Process -Wait -FilePath "$ytdlp" -ArgumentList "--help" -RedirectStandardOutput ".\.cache\help.txt" -WindowStyle Minimized
-  $host.UI.RawUI.WindowTitle = "Finished writing help file"
-  Write-Host "Successfully wrote help.txt"
-  Write-Host "See full documentation at  https://github.com/yt-dlp/yt-dlp#readme"
-  Write-Host "CTRL+SHIFT+F is your friend :3" -ForegroundColor $green
-  Write-Host "Still need help? Visit the repository: https://github.com/mcalec-dev/ytdlp-pwsh"
-  $seehelpfile = Read-Host -Prompt 'See the help file? [Y]es or [N]o'
-  if ($seehelpfile -eq "y" -or "Y") {
-    Invoke-Item ".\.cache\help.txt"
-    Pause
-  } else { RunMenu }
-  RunMenu
+
+  do {
+    ShowEndHelpMenu
+    $key = [System.Console]::ReadKey($true).Key
+  
+    switch ($key) {
+      "Y" { Invoke-Item '.\.cache\help.txt';Clear-Host;RunMenu }
+      "N" { Clear-Host;RunMenu }
+      default { Write-Output "Invaild Option" }
+    }
+  
+    if ($key -ne $endkeyargs) {
+      Clear-Host
+      Write-Host "Invaild Key!"
+      Write-Host "Press any key to return..."
+      [System.Console]::ReadKey($true) | Out-Null
+    }
+  } while ($key -ne $endkeyargs)
 }
 
 # Exit PowerShell
@@ -78,38 +171,20 @@ function ExitYTDLP {
   break
 }
 
-# Center command 'Write-HostCenter'
-function Write-HostCenter { param($Message) Write-Host ("{0}{1}" -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message) }
-
-# Main Menu text
-function ShowMenu {
-  Clear-Host
-  $host.UI.RawUI.WindowTitle = "Main Menu - yt-dlp"
-  Write-Host '===================================' 
-  Write-Host '              yt-dlp               ' -ForegroundColor $red
-  Write-Host '        PowerShell Script          '
-  Write-Host ''
-  Write-Host '             By McAlec             ' -ForegroundColor DarkBlue
-  Write-Host '==================================='
-  Write-Host ''
-  Write-Host ' [1] Download Video' -ForegroundColor $green
-  Write-Host ' [2] Download Audio' -ForegroundColor $green
-  Write-Host ' [3] Update' -ForegroundColor $white
-  Write-Host ' [?] Help' -ForegroundColor $cyan
-  Write-Host ' [Q] Exit' -ForegroundColor $red
-  Write-Host ''
-}
-
 # Main Menu runtime
 function RunMenu {
 do {
+  #Pause
   ShowMenu
   $key = [System.Console]::ReadKey($true).Key
 
   switch ($key) {
     "D1" { Clear-Host;DownloadVideo }
     "D2" { Clear-Host;DownloadAudio }
-    "D3" { Clear-Host;Write-Output "Updating...";Start-Process -Wait -FilePath ".\update.ps1";Write-Output "Done!";RunMenu }
+    "D3" { Clear-Host;UpdateYtdlp }
+    "D4" { Clear-Host;Test-Path -IsValid '.\depenencies';Test-Path -IsValid '.\config';RunMenu }
+    "D8" { Clear-Host;ClearCacheAndLogs }
+    "D0" { Clear-host;InstallYTDLP }
     "Oem2" { Clear-Host;HelpDialog }
     "Q" { Clear-Host;ExitYTDLP }
     default { Write-Output "Invaild Option" }

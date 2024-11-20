@@ -1,0 +1,2 @@
+function Write-HostCenter {param($Message) Write-Host("{0}{1}" -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message)}
+function Format-Hyperlink {param([Parameter(ValueFromPipeline = $true, Position = 0)][ValidateNotNullOrEmpty()][Uri] $Uri, [Parameter(Mandatory=$false, Position = 1)][string] $Label)if (($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) -and -not $Env:WT_SESSION) {if ($Label) {return "$Label ($Uri)"}return "$Uri"}if ($Label) {return "`e]8;;$Uri`e\$Label`e]8;;`e\"}return "$Uri"}
