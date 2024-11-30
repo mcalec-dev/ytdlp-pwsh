@@ -1,9 +1,9 @@
-New-Item -Path '.\logs\download\video' -ItemType "directory"
-New-Item -Path '.\logs\download\audio' -ItemType "directory"
-New-Item -Path '.\logs\download\subtitle' -ItemType "directory"
-
-New-Item -Path '.\downloads\video' -ItemType "directory"
-New-Item -Path '.\downloads\audio' -ItemType "directory"
-New-Item -Path '.\downloads\subtitle' -ItemType "directory"
-
-New-Item -Path '.\.cache' -ItemType "directory"
+New-Item -Path '.\logs\download\video' -ItemType Directory
+New-Item -Path '.\logs\download\audio' -ItemType Directory
+New-Item -Path '.\logs\download\subtitle' -ItemType Directory
+New-Item -Path '.\downloads\video' -ItemType Directory
+New-Item -Path '.\downloads\audio' -ItemType Directory
+New-Item -Path '.\downloads\subtitle' -ItemType Directory
+New-Item -Path '.\.cache' -ItemType Directory
+New-Item -Path '.\session.lock' -Force -ItemType File
+' ' | Out-File -FilePath '.\session.lock' -Force -NoNewline

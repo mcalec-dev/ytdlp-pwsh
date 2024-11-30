@@ -33,7 +33,6 @@ function ShowMenu {
   Write-Host ' [3] Update' -ForegroundColor $white
   Write-Host ' [4] Test Paths' -ForegroundColor $white
   Write-host ' [8] Clear Cache & Logs' -ForegroundColor $white
-  Write-Host ' [0] Install YT-DLP & Dependencies' -ForegroundColor $yellow
   Write-Host ' [?] Help' -ForegroundColor $cyan
   Write-Host ' [Q] Exit' -ForegroundColor $red
   Write-Host "`nyt-dlp $(Format-Hyperlink -Uri 'https://github.com/yt-dlp/yt-dlp' -Label 'master@f919729')"
