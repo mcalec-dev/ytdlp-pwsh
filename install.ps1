@@ -99,6 +99,7 @@ function CleanUpInstallation {
 function ExitInstall {
   Write-Output "We're done!"
   Start-Sleep -Seconds 1
+  Start-Process .\run.ps1
   Exit-PSHostProcess
   Exit-PSSession
   exit
